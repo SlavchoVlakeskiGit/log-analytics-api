@@ -1,10 +1,8 @@
 # Log Analytics API
 
-A FastAPI project for storing and querying application logs with MySQL.
+A FastAPI backend for storing, filtering, and analyzing application logs with MySQL.
 
-I built this to practice the backend parts that show up in a lot of junior Python roles: API design, database models, authentication, filtering, pagination, and basic analytics endpoints.
-
-The idea is simple: instead of a generic CRUD app, this project works with log data and exposes endpoints that are a bit closer to something an internal engineering or operations team might use.
+I built this project to practice API design, database modeling, authentication, pagination, and analytics endpoints in one backend application.
 
 ## What it does
 
