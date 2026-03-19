@@ -44,3 +44,51 @@ def test_source_distribution(client) -> None:
     )
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+
+def test_error_trends(client) -> None:
+    token = get_token(client)
+
+    response = client.get(
+        "/api/v1/analytics/error-trends",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+def test_top_failing_services(client) -> None:
+    token = get_token(client)
+
+    response = client.get(
+        "/api/v1/analytics/top-failing-services",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+def test_error_rate(client) -> None:
+    token = get_token(client)
+
+    response = client.get(
+        "/api/v1/analytics/error-rate",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+
+    body = response.json()
+    assert "total_logs" in body
+    assert "error_logs" in body
+    assert "error_rate_percent" in body
+
+
+def test_suspicious_activity(client) -> None:
+    token = get_token(client)
+
+    response = client.get(
+        "/api/v1/analytics/suspicious-activity",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)

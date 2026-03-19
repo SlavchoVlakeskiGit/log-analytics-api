@@ -22,10 +22,21 @@ class SourceDistributionItem(BaseModel):
 
 
 class ErrorTrendItem(BaseModel):
-    date: date
+    date: str
     count: int
 
 
 class SuspiciousActivityItem(BaseModel):
     description: str
     count: int
+
+
+class TopFailingServiceItem(BaseModel):
+    source: str
+    error_count: int
+
+
+class ErrorRateResponse(BaseModel):
+    total_logs: int
+    error_logs: int
+    error_rate_percent: float

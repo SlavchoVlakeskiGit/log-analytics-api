@@ -1,0 +1,12 @@
+fastapi==0.118.3
+uvicorn[standard]
+sqlalchemy
+pymysql
+alembic
+pydantic==2.12.0
+pydantic-settings==2.11.0
+python-dotenv
+pytest
+httpx
+passlib
+python-jose[cryptography]

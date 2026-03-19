@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: log-analytics-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: log_analytics
+      MYSQL_USER: logapi_user
+      MYSQL_PASSWORD: StrongPassword123!
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  api:
+    build: .
+    container_name: log-analytics-api
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      APP_NAME: Log Analytics API
+      APP_ENV: development
+      APP_DEBUG: "true"
+      API_V1_STR: /api/v1
+      MYSQL_USER: logapi_user
+      MYSQL_PASSWORD: StrongPassword123!
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_DB: log_analytics
+      SECRET_KEY: super-secret-key-change-me
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      ALGORITHM: HS256
+    ports:
+      - "8000:8000"
+
+volumes:
+  mysql_data:
