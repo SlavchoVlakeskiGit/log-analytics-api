@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
 from app.repositories.log_repository import LogRepository
 from app.schemas.analytics import (
     AnalyticsOverview,
@@ -20,7 +20,10 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
     response_model=AnalyticsOverview,
     summary="Get log analytics overview",
 )
-def get_overview(db: Session = Depends(get_db)) -> AnalyticsOverview:
+def get_overview(
+    db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
+) -> AnalyticsOverview:
     repository = LogRepository(db)
     service = LogService(repository)
     return service.get_overview()
@@ -33,6 +36,7 @@ def get_overview(db: Session = Depends(get_db)) -> AnalyticsOverview:
 )
 def get_severity_distribution(
     db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
 ) -> list[SeverityDistributionItem]:
     repository = LogRepository(db)
     service = LogService(repository)
@@ -46,6 +50,7 @@ def get_severity_distribution(
 )
 def get_source_distribution(
     db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
 ) -> list[SourceDistributionItem]:
     repository = LogRepository(db)
     service = LogService(repository)
@@ -57,7 +62,10 @@ def get_source_distribution(
     response_model=list[ErrorTrendItem],
     summary="Get daily count of error logs",
 )
-def get_error_trends(db: Session = Depends(get_db)) -> list[ErrorTrendItem]:
+def get_error_trends(
+    db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
+) -> list[ErrorTrendItem]:
     repository = LogRepository(db)
     service = LogService(repository)
     return service.get_error_trends()
@@ -70,6 +78,7 @@ def get_error_trends(db: Session = Depends(get_db)) -> list[ErrorTrendItem]:
 )
 def get_suspicious_activity(
     db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
 ) -> list[SuspiciousActivityItem]:
     repository = LogRepository(db)
     service = LogService(repository)

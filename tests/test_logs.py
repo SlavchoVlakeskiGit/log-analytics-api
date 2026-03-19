@@ -1,7 +1,18 @@
 from datetime import UTC, datetime
 
 
+def get_token(client) -> str:
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"username": "admin", "password": "admin123"},
+    )
+    assert response.status_code == 200
+    return response.json()["access_token"]
+
+
 def test_create_log_entry(client) -> None:
+    token = get_token(client)
+
     payload = {
         "timestamp": datetime.now(UTC).isoformat(),
         "source": "auth-service",
@@ -16,7 +27,11 @@ def test_create_log_entry(client) -> None:
         "request_id": "req-1001",
     }
 
-    response = client.post("/api/v1/logs", json=payload)
+    response = client.post(
+        "/api/v1/logs",
+        json=payload,
+        headers={"Authorization": f"Bearer {token}"},
+    )
 
     assert response.status_code == 201
     body = response.json()
@@ -27,6 +42,11 @@ def test_create_log_entry(client) -> None:
 
 
 def test_get_log_entry_not_found(client) -> None:
-    response = client.get("/api/v1/logs/999999")
+    token = get_token(client)
+
+    response = client.get(
+        "/api/v1/logs/999999",
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert response.status_code == 404
     assert response.json()["detail"] == "Log entry not found"

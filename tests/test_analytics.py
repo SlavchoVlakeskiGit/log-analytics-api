@@ -1,5 +1,19 @@
+def get_token(client) -> str:
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"username": "admin", "password": "admin123"},
+    )
+    assert response.status_code == 200
+    return response.json()["access_token"]
+
+
 def test_analytics_overview(client) -> None:
-    response = client.get("/api/v1/analytics/overview")
+    token = get_token(client)
+
+    response = client.get(
+        "/api/v1/analytics/overview",
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert response.status_code == 200
 
     body = response.json()
@@ -11,12 +25,22 @@ def test_analytics_overview(client) -> None:
 
 
 def test_severity_distribution(client) -> None:
-    response = client.get("/api/v1/analytics/severity-distribution")
+    token = get_token(client)
+
+    response = client.get(
+        "/api/v1/analytics/severity-distribution",
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 
 def test_source_distribution(client) -> None:
-    response = client.get("/api/v1/analytics/source-distribution")
+    token = get_token(client)
+
+    response = client.get(
+        "/api/v1/analytics/source-distribution",
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert response.status_code == 200
     assert isinstance(response.json(), list)

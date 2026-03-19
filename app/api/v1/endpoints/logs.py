@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
 from app.repositories.log_repository import LogRepository
-from app.schemas.log_entry import LogEntryCreate, LogEntryResponse
+from app.schemas.log_entry import LogEntryCreate, LogEntryQuery, LogEntryResponse
 from app.services.log_service import LogService
-from app.schemas.log_entry import LogEntryQuery
 
 router = APIRouter(prefix="/logs", tags=["Logs"])
 
@@ -19,33 +18,13 @@ router = APIRouter(prefix="/logs", tags=["Logs"])
 def create_log(
     payload: LogEntryCreate,
     db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
 ) -> LogEntryResponse:
     repository = LogRepository(db)
     service = LogService(repository)
     created_log = service.create_log(payload)
     return created_log
 
-
-@router.get(
-    "/{log_id}",
-    response_model=LogEntryResponse,
-    summary="Get a log entry by ID",
-)
-def get_log_by_id(
-    log_id: int,
-    db: Session = Depends(get_db),
-) -> LogEntryResponse:
-    repository = LogRepository(db)
-    service = LogService(repository)
-    log_entry = service.get_log_by_id(log_id)
-
-    if log_entry is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Log entry not found",
-        )
-
-    return log_entry
 
 @router.get(
     "",
@@ -65,7 +44,8 @@ def list_logs(
     sort_by: str = "timestamp",
     sort_order: str = "desc",
     db: Session = Depends(get_db),
-):
+    user: dict = Depends(get_current_user),
+) -> list[LogEntryResponse]:
     query_params = LogEntryQuery(
         severity=severity,
         source=source,
@@ -82,5 +62,27 @@ def list_logs(
 
     repository = LogRepository(db)
     service = LogService(repository)
-
     return service.list_logs(query_params)
+
+
+@router.get(
+    "/{log_id}",
+    response_model=LogEntryResponse,
+    summary="Get a log entry by ID",
+)
+def get_log_by_id(
+    log_id: int,
+    db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
+) -> LogEntryResponse:
+    repository = LogRepository(db)
+    service = LogService(repository)
+    log_entry = service.get_log_by_id(log_id)
+
+    if log_entry is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Log entry not found",
+        )
+
+    return log_entry
