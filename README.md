@@ -1,6 +1,6 @@
 ## Project Focus
 
-This project focuses on backend API development, including authentication, database design, and analytics endpoints.
+This project focuses on backend API design and system architecture rather than security analysis or threat intelligence.
 
 It is designed as a production-style REST API rather than a data science or dashboard tool.
 
