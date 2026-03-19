@@ -28,3 +28,16 @@ class LogEntryResponse(LogEntryBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class LogEntryQuery(BaseModel):
+    severity: SeverityLevel | None = None
+    source: str | None = None
+    environment: EnvironmentType | None = None
+    event_type: str | None = None
+    keyword: str | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    skip: int = 0
+    limit: int = 50
+    sort_by: str = "timestamp"
+    sort_order: str = "desc"
