@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment
+.env
+
+# Test / cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Database / local files
+*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Alembic cache
+alembic/__pycache__/
