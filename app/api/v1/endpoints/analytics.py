@@ -5,8 +5,10 @@ from app.api.deps import get_db
 from app.repositories.log_repository import LogRepository
 from app.schemas.analytics import (
     AnalyticsOverview,
+    ErrorTrendItem,
     SeverityDistributionItem,
     SourceDistributionItem,
+    SuspiciousActivityItem,
 )
 from app.services.log_service import LogService
 
@@ -48,3 +50,27 @@ def get_source_distribution(
     repository = LogRepository(db)
     service = LogService(repository)
     return service.get_source_distribution()
+
+
+@router.get(
+    "/error-trends",
+    response_model=list[ErrorTrendItem],
+    summary="Get daily count of error logs",
+)
+def get_error_trends(db: Session = Depends(get_db)) -> list[ErrorTrendItem]:
+    repository = LogRepository(db)
+    service = LogService(repository)
+    return service.get_error_trends()
+
+
+@router.get(
+    "/suspicious-activity",
+    response_model=list[SuspiciousActivityItem],
+    summary="Get suspicious activity based on repeated failed logins",
+)
+def get_suspicious_activity(
+    db: Session = Depends(get_db),
+) -> list[SuspiciousActivityItem]:
+    repository = LogRepository(db)
+    service = LogService(repository)
+    return service.get_suspicious_activity()

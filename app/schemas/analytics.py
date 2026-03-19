@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -18,4 +18,14 @@ class SeverityDistributionItem(BaseModel):
 
 class SourceDistributionItem(BaseModel):
     source: str
+    count: int
+
+
+class ErrorTrendItem(BaseModel):
+    date: date
+    count: int
+
+
+class SuspiciousActivityItem(BaseModel):
+    description: str
     count: int

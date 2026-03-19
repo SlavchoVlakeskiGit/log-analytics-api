@@ -115,3 +115,39 @@ class LogRepository:
         )
 
         return [{"source": row[0], "count": row[1]} for row in rows]
+
+    def get_error_trends(self) -> list[dict]:
+        rows = (
+            self.db.query(
+                func.date(LogEntry.timestamp).label("date"),
+                func.count(LogEntry.id).label("count"),
+            )
+            .filter(LogEntry.severity == "ERROR")
+            .group_by(func.date(LogEntry.timestamp))
+            .order_by(desc("date"))
+            .all()
+        )
+
+        return [{"date": row[0], "count": row[1]} for row in rows]
+
+    def get_suspicious_activity(self) -> list[dict]:
+        rows = (
+            self.db.query(LogEntry.ip_address, func.count(LogEntry.id).label("count"))
+            .filter(
+                LogEntry.severity == "ERROR",
+                LogEntry.event_type == "login_failed",
+                LogEntry.ip_address.isnot(None),
+            )
+            .group_by(LogEntry.ip_address)
+            .having(func.count(LogEntry.id) >= 3)
+            .order_by(desc("count"))
+            .all()
+        )
+
+        return [
+            {
+                "description": f"Repeated failed logins from IP {row[0]}",
+                "count": row[1],
+            }
+            for row in rows
+        ]

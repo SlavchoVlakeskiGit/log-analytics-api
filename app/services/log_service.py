@@ -23,3 +23,9 @@ class LogService:
 
     def get_source_distribution(self):
         return self.repository.get_source_distribution()
+
+    def get_error_trends(self):
+        return self.repository.get_error_trends()
+
+    def get_suspicious_activity(self):
+        return self.repository.get_suspicious_activity()
