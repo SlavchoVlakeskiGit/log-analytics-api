@@ -1,4 +1,4 @@
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, func
 from sqlalchemy.orm import Session
 
 from app.models.log_entry import LogEntry
@@ -63,3 +63,55 @@ class LogRepository:
             query = query.order_by(desc(sort_column))
 
         return query.offset(query_params.skip).limit(query_params.limit).all()
+
+    def get_overview(self) -> dict:
+        total_logs = self.db.query(func.count(LogEntry.id)).scalar() or 0
+        total_errors = (
+            self.db.query(func.count(LogEntry.id))
+            .filter(LogEntry.severity == "ERROR")
+            .scalar()
+            or 0
+        )
+        total_warnings = (
+            self.db.query(func.count(LogEntry.id))
+            .filter(LogEntry.severity == "WARNING")
+            .scalar()
+            or 0
+        )
+
+        top_source_row = (
+            self.db.query(LogEntry.source, func.count(LogEntry.id).label("count"))
+            .group_by(LogEntry.source)
+            .order_by(desc("count"))
+            .first()
+        )
+
+        most_recent_timestamp = self.db.query(func.max(LogEntry.timestamp)).scalar()
+
+        return {
+            "total_logs": total_logs,
+            "total_errors": total_errors,
+            "total_warnings": total_warnings,
+            "top_source": top_source_row[0] if top_source_row else None,
+            "most_recent_log_timestamp": most_recent_timestamp,
+        }
+
+    def get_severity_distribution(self) -> list[dict]:
+        rows = (
+            self.db.query(LogEntry.severity, func.count(LogEntry.id).label("count"))
+            .group_by(LogEntry.severity)
+            .order_by(desc("count"))
+            .all()
+        )
+
+        return [{"severity": row[0], "count": row[1]} for row in rows]
+
+    def get_source_distribution(self) -> list[dict]:
+        rows = (
+            self.db.query(LogEntry.source, func.count(LogEntry.id).label("count"))
+            .group_by(LogEntry.source)
+            .order_by(desc("count"))
+            .all()
+        )
+
+        return [{"source": row[0], "count": row[1]} for row in rows]

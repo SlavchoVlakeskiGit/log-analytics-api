@@ -1,15 +1,9 @@
-from datetime import datetime
-
-from fastapi.testclient import TestClient
-
-from app.main import app
-
-client = TestClient(app)
+from datetime import UTC, datetime
 
 
-def test_create_log_entry() -> None:
+def test_create_log_entry(client) -> None:
     payload = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "source": "auth-service",
         "host": "srv-auth-01",
         "severity": "ERROR",
@@ -32,7 +26,7 @@ def test_create_log_entry() -> None:
     assert "id" in body
 
 
-def test_get_log_entry_not_found() -> None:
+def test_get_log_entry_not_found(client) -> None:
     response = client.get("/api/v1/logs/999999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Log entry not found"

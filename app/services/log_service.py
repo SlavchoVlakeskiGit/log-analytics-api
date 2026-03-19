@@ -14,3 +14,12 @@ class LogService:
 
     def list_logs(self, query_params: LogEntryQuery):
         return self.repository.list_logs(query_params)
+
+    def get_overview(self):
+        return self.repository.get_overview()
+
+    def get_severity_distribution(self):
+        return self.repository.get_severity_distribution()
+
+    def get_source_distribution(self):
+        return self.repository.get_source_distribution()
