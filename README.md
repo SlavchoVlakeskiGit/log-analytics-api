@@ -1,3 +1,9 @@
+## Project Focus
+
+This project focuses on backend API development, including authentication, database design, and analytics endpoints.
+
+It is designed as a production-style REST API rather than a data science or dashboard tool.
+
 # Log Analytics API
 
 A production-style REST API built with **FastAPI** and **MySQL** for ingesting, querying, and analyzing operational log data from multiple services.
