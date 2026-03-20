@@ -2,38 +2,46 @@
 
 A small FastAPI service for collecting application logs and querying them with filtering, pagination, and simple analytics.
 
-I mainly built this because I wanted something a bit closer to real backend work than the usual CRUD examples.
+I built this because I wanted something closer to real backend work than the usual CRUD-style projects. Logs are something every system deals with sooner or later, so it felt like a more practical place to focus.
 
-## What it does
+---
 
-- create log records through an API
-- fetch a single log entry by id
-- list logs with filters, pagination, and sorting
-- protect selected endpoints with JWT authentication
-- expose summary endpoints for things like severity distribution, error trends, and repeated failed logins
-- manage schema changes with Alembic
+## Features
+
+- create log records through an API  
+- fetch a single log entry by id  
+- list logs with filtering, pagination, and sorting  
+- protect selected endpoints with JWT authentication  
+- expose basic analytics (severity distribution, error trends, simple alert checks)  
+- manage schema changes with Alembic  
+
+---
 
 ## Tech stack
 
-- Python
-- FastAPI
-- MySQL
-- SQLAlchemy
-- Alembic
-- Pytest
-- Docker / Docker Compose
+- Python  
+- FastAPI  
+- MySQL  
+- SQLAlchemy  
+- Alembic  
+- Pytest  
+- Docker / Docker Compose  
+
+---
 
 ## Why I built it
 
-One thing I realized while building this is that even simple log data becomes useful once you add a bit of filtering and aggregation on top.
+While working on this, I noticed how quickly raw logs become hard to work with unless you add some structure on top. Even simple filtering and grouping already make a big difference.
 
-A lot of beginner backend projects stop at users, products, or tasks. I wanted something that still stays small enough for a portfolio, but uses a workflow that feels more operational.
+I also wanted to move away from the typical “users/tasks” projects and build something a bit more operational. It’s still a small project, but the flow feels closer to something you’d actually run in a real service.
 
-The analytics part was probably the most useful addition because it pushed the project beyond basic create/read endpoints and made the data model feel more purposeful.
+The alerting part came later. I kept it intentionally simple, but it helped make the project feel more complete.
+
+---
 
 ## Project structure
 
-```text
+```
 log-analytics-api/
 ├── alembic/
 ├── app/
@@ -52,59 +60,104 @@ log-analytics-api/
 ├── alembic.ini
 └── requirements.txt
 ```
+---
 
 ## Main endpoints
 
-Examples of the main areas covered by the API:
+The API is organized into a few main areas:
 
-- auth
-- health
-- logs
-- analytics
+- `auth`  
+- `health`  
+- `logs`  
+- `analytics`  
+
+---
 
 ## Typical flow
 
-1. authenticate
-2. send log events
-3. query logs by level, date, or source
-4. review summary endpoints for patterns in the data
+1. authenticate  
+2. send log events  
+3. query logs by level, date, or source  
+4. check analytics or alerts for patterns  
+
+---
+
+## Alerting
+
+The API includes a simple alerting layer based on recent log activity.
+
+Current checks include:
+
+- spikes in `ERROR` / `CRITICAL` logs from the same source  
+- repeated failed login events from the same IP address  
+
+This part is intentionally lightweight so it stays easy to understand and doesn’t turn into a full monitoring system.
+
+---
 
 ## Run locally
 
+### With Docker
+
 ```bash
-git clone https://github.com/SlavchoVlakeskiGit/log-analytics-api.git
-cd log-analytics-api
-docker-compose up --build
-alembic upgrade head
+docker compose up --build
 ```
 
-Open `/docs` in the browser to test the API.
+Once the containers are running, open:
+- http://localhost:8000/docs
+- http://localhost:8000/redoc
 
-## Example log payload
-
-```json
-{
-  "timestamp": "2026-03-20T10:14:00Z",
-  "level": "ERROR",
-  "service": "auth-service",
-  "message": "Invalid token",
-  "source_ip": "10.0.0.24"
-}
-```
-
-## Testing
+### Run tests
 
 ```bash
 pytest
 ```
 
+---
+
+## Example log payload
+
+```json
+{
+  "timestamp": "2026-03-20T10:30:00",
+  "source": "auth-service",
+  "host": "auth-node-1",
+  "severity": "ERROR",
+  "message": "Database connection timeout",
+  "environment": "production",
+  "event_type": "application_error",
+  "status_code": 500,
+  "ip_address": "192.168.1.20",
+  "request_id": "req-12345"
+}
+```
+
+---
+
+## Example alert
+
+```json
+{
+  "type": "error_spike",
+  "severity": "high",
+  "source": "auth-service",
+  "count": 8,
+  "window_minutes": 15,
+  "message": "High number of ERROR logs detected for auth-service"
+}
+```
+
+---
+
 ## Notes
 
-This is not meant to be a full monitoring platform. I kept the scope fairly tight so the main backend pieces stay clear and easy to follow.
+This isn’t meant to replace a full logging or monitoring stack. The idea was to keep it small but still cover the kind of backend concerns you’d actually run into.
+
+---
 
 ## Possible next improvements
 
-- simple alert rules
-- demo seed script for sample logs
 - API key ingestion for service-to-service logging
-- more analytics around repeated failures or spikes
+- better handling of alert thresholds
+- simple dashboard or UI on top of the API
+

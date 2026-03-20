@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.repositories.log_repository import LogRepository
 from app.schemas.analytics import (
+    AlertItem,
     AnalyticsOverview,
     ErrorRateResponse,
     ErrorTrendItem,
@@ -68,24 +69,9 @@ def get_error_trends(
     db: Session = Depends(get_db),
     user: dict = Depends(get_current_user),
 ) -> list[ErrorTrendItem]:
-    from sqlalchemy import func
-    from app.models.log_entry import LogEntry
-
-    results = (
-        db.query(
-            func.date(LogEntry.timestamp).label("date"),
-            func.count().label("count"),
-        )
-        .filter(LogEntry.severity.in_(["ERROR", "CRITICAL"]))
-        .group_by(func.date(LogEntry.timestamp))
-        .order_by(func.date(LogEntry.timestamp))
-        .all()
-    )
-
-    return [
-        ErrorTrendItem(date=str(row.date), count=row.count)
-        for row in results
-    ]
+    repository = LogRepository(db)
+    service = LogService(repository)
+    return service.get_error_trends()
 
 
 @router.get(
@@ -97,25 +83,9 @@ def get_top_failing_services(
     db: Session = Depends(get_db),
     user: dict = Depends(get_current_user),
 ) -> list[TopFailingServiceItem]:
-    from sqlalchemy import func
-    from app.models.log_entry import LogEntry
-
-    results = (
-        db.query(
-            LogEntry.source,
-            func.count().label("error_count"),
-        )
-        .filter(LogEntry.severity.in_(["ERROR", "CRITICAL"]))
-        .group_by(LogEntry.source)
-        .order_by(func.count().desc())
-        .limit(5)
-        .all()
-    )
-
-    return [
-        TopFailingServiceItem(source=row.source, error_count=row.error_count)
-        for row in results
-    ]
+    repository = LogRepository(db)
+    service = LogService(repository)
+    return service.get_top_failing_services()
 
 
 @router.get(
@@ -127,24 +97,9 @@ def get_error_rate(
     db: Session = Depends(get_db),
     user: dict = Depends(get_current_user),
 ) -> ErrorRateResponse:
-    from sqlalchemy import func
-    from app.models.log_entry import LogEntry
-
-    total = db.query(func.count(LogEntry.id)).scalar() or 0
-    errors = (
-        db.query(func.count(LogEntry.id))
-        .filter(LogEntry.severity.in_(["ERROR", "CRITICAL"]))
-        .scalar()
-        or 0
-    )
-
-    error_rate = (errors / total * 100) if total else 0.0
-
-    return ErrorRateResponse(
-        total_logs=total,
-        error_logs=errors,
-        error_rate_percent=round(error_rate, 2),
-    )
+    repository = LogRepository(db)
+    service = LogService(repository)
+    return service.get_error_rate()
 
 
 @router.get(
@@ -159,3 +114,17 @@ def get_suspicious_activity(
     repository = LogRepository(db)
     service = LogService(repository)
     return service.get_suspicious_activity()
+
+
+@router.get(
+    "/alerts",
+    response_model=list[AlertItem],
+    summary="Get alert conditions based on recent log activity",
+)
+def get_alerts(
+    db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
+) -> list[AlertItem]:
+    repository = LogRepository(db)
+    service = LogService(repository)
+    return service.get_alerts()

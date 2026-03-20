@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 from sqlalchemy import DateTime, Integer, String, Text
@@ -38,6 +38,6 @@ class LogEntry(Base):
     request_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
-        nullable=False
+        default=lambda: datetime.now(UTC),
+        nullable=False,
     )

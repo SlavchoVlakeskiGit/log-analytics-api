@@ -1,8 +1,20 @@
+from datetime import UTC, datetime, timedelta
+
 from sqlalchemy import asc, desc, func
 from sqlalchemy.orm import Session
 
 from app.models.log_entry import LogEntry
 from app.schemas.log_entry import LogEntryCreate, LogEntryQuery
+
+ALLOWED_SORT_FIELDS = {
+    "id",
+    "timestamp",
+    "source",
+    "severity",
+    "environment",
+    "event_type",
+    "created_at",
+}
 
 
 class LogRepository:
@@ -55,7 +67,8 @@ class LogRepository:
         if query_params.end_date:
             query = query.filter(LogEntry.timestamp <= query_params.end_date)
 
-        sort_column = getattr(LogEntry, query_params.sort_by, LogEntry.timestamp)
+        sort_by = query_params.sort_by if query_params.sort_by in ALLOWED_SORT_FIELDS else "timestamp"
+        sort_column = getattr(LogEntry, sort_by)
 
         if query_params.sort_order == "asc":
             query = query.order_by(asc(sort_column))
@@ -68,7 +81,7 @@ class LogRepository:
         total_logs = self.db.query(func.count(LogEntry.id)).scalar() or 0
         total_errors = (
             self.db.query(func.count(LogEntry.id))
-            .filter(LogEntry.severity == "ERROR")
+            .filter(LogEntry.severity.in_(["ERROR", "CRITICAL"]))
             .scalar()
             or 0
         )
@@ -122,13 +135,42 @@ class LogRepository:
                 func.date(LogEntry.timestamp).label("date"),
                 func.count(LogEntry.id).label("count"),
             )
-            .filter(LogEntry.severity == "ERROR")
+            .filter(LogEntry.severity.in_(["ERROR", "CRITICAL"]))
             .group_by(func.date(LogEntry.timestamp))
-            .order_by(desc("date"))
+            .order_by(func.date(LogEntry.timestamp))
             .all()
         )
 
-        return [{"date": row[0], "count": row[1]} for row in rows]
+        return [{"date": str(row[0]), "count": row[1]} for row in rows]
+
+    def get_top_failing_services(self) -> list[dict]:
+        rows = (
+            self.db.query(LogEntry.source, func.count(LogEntry.id).label("error_count"))
+            .filter(LogEntry.severity.in_(["ERROR", "CRITICAL"]))
+            .group_by(LogEntry.source)
+            .order_by(desc("error_count"))
+            .limit(5)
+            .all()
+        )
+
+        return [{"source": row[0], "error_count": row[1]} for row in rows]
+
+    def get_error_rate(self) -> dict:
+        total_logs = self.db.query(func.count(LogEntry.id)).scalar() or 0
+        error_logs = (
+            self.db.query(func.count(LogEntry.id))
+            .filter(LogEntry.severity.in_(["ERROR", "CRITICAL"]))
+            .scalar()
+            or 0
+        )
+
+        error_rate = (error_logs / total_logs * 100) if total_logs else 0.0
+
+        return {
+            "total_logs": total_logs,
+            "error_logs": error_logs,
+            "error_rate_percent": round(error_rate, 2),
+        }
 
     def get_suspicious_activity(self) -> list[dict]:
         rows = (
@@ -151,3 +193,61 @@ class LogRepository:
             }
             for row in rows
         ]
+
+    def get_alerts(self, window_minutes: int = 15) -> list[dict]:
+        window_start = datetime.now(UTC) - timedelta(minutes=window_minutes)
+        alerts: list[dict] = []
+
+        error_spikes = (
+            self.db.query(LogEntry.source, func.count(LogEntry.id).label("count"))
+            .filter(
+                LogEntry.timestamp >= window_start,
+                LogEntry.severity.in_(["ERROR", "CRITICAL"]),
+            )
+            .group_by(LogEntry.source)
+            .having(func.count(LogEntry.id) >= 5)
+            .order_by(desc("count"))
+            .all()
+        )
+
+        for row in error_spikes:
+            alerts.append(
+                {
+                    "type": "error_spike",
+                    "severity": "high",
+                    "source": row[0],
+                    "ip_address": None,
+                    "count": row[1],
+                    "window_minutes": window_minutes,
+                    "message": f"High number of ERROR logs detected for {row[0]}",
+                }
+            )
+
+        failed_login_spikes = (
+            self.db.query(LogEntry.ip_address, func.count(LogEntry.id).label("count"))
+            .filter(
+                LogEntry.timestamp >= window_start,
+                LogEntry.severity == "ERROR",
+                LogEntry.event_type == "login_failed",
+                LogEntry.ip_address.isnot(None),
+            )
+            .group_by(LogEntry.ip_address)
+            .having(func.count(LogEntry.id) >= 3)
+            .order_by(desc("count"))
+            .all()
+        )
+
+        for row in failed_login_spikes:
+            alerts.append(
+                {
+                    "type": "repeated_failed_logins",
+                    "severity": "medium",
+                    "source": None,
+                    "ip_address": row[0],
+                    "count": row[1],
+                    "window_minutes": window_minutes,
+                    "message": f"Repeated failed login events detected from IP {row[0]}",
+                }
+            )
+
+        return alerts

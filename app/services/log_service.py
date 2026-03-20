@@ -27,5 +27,14 @@ class LogService:
     def get_error_trends(self):
         return self.repository.get_error_trends()
 
+    def get_top_failing_services(self):
+        return self.repository.get_top_failing_services()
+
+    def get_error_rate(self):
+        return self.repository.get_error_rate()
+
     def get_suspicious_activity(self):
         return self.repository.get_suspicious_activity()
+
+    def get_alerts(self):
+        return self.repository.get_alerts()

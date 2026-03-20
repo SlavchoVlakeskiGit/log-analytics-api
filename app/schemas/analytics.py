@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -40,3 +40,13 @@ class ErrorRateResponse(BaseModel):
     total_logs: int
     error_logs: int
     error_rate_percent: float
+
+
+class AlertItem(BaseModel):
+    type: str
+    severity: str
+    count: int
+    window_minutes: int
+    message: str
+    source: str | None = None
+    ip_address: str | None = None

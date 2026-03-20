@@ -29,6 +29,7 @@ class LogEntryResponse(LogEntryBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class LogEntryQuery(BaseModel):
     severity: SeverityLevel | None = None
     source: str | None = None
