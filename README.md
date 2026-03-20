@@ -1,5 +1,8 @@
 # Log Analytics API
 
+![CI](https://github.com/SlavchoVlakeskiGit/log-analytics-api/actions/workflows/ci.yml/badge.svg)
+![Docker](https://github.com/SlavchoVlakeskiGit/log-analytics-api/actions/workflows/docker.yml/badge.svg)
+
 A small FastAPI service for collecting application logs and querying them with filtering, pagination, and simple analytics.
 
 I built this because I wanted something closer to real backend work than the usual CRUD-style projects. Logs are something every system deals with sooner or later, so it felt like a more practical place to focus.
