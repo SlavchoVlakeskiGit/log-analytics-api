@@ -1,8 +1,8 @@
 # Log Analytics API
 
-A FastAPI backend for storing, filtering, and analyzing application logs with MySQL.
+A small FastAPI service for collecting application logs and querying them with filtering, pagination, and simple analytics.
 
-I built this project to practice API design, database modeling, authentication, pagination, and analytics endpoints in one backend application.
+I mainly built this because I wanted something a bit closer to real backend work than the usual CRUD examples.
 
 ## What it does
 
@@ -10,7 +10,7 @@ I built this project to practice API design, database modeling, authentication, 
 - fetch a single log entry by id
 - list logs with filters, pagination, and sorting
 - protect selected endpoints with JWT authentication
-- expose a few summary endpoints for things like severity distribution, error trends, and repeated failed logins
+- expose summary endpoints for things like severity distribution, error trends, and repeated failed logins
 - manage schema changes with Alembic
 
 ## Tech stack
@@ -25,9 +25,11 @@ I built this project to practice API design, database modeling, authentication, 
 
 ## Why I built it
 
-A lot of beginner backend projects stop at users, products, or tasks.
+One thing I realized while building this is that even simple log data becomes useful once you add a bit of filtering and aggregation on top.
 
-I wanted to build something that still stays small enough for a portfolio, but uses a data model and endpoint set that feels more like backend work than a tutorial exercise.
+A lot of beginner backend projects stop at users, products, or tasks. I wanted something that still stays small enough for a portfolio, but uses a workflow that feels more operational.
+
+The analytics part was probably the most useful addition because it pushed the project beyond basic create/read endpoints and made the data model feel more purposeful.
 
 ## Project structure
 
@@ -60,36 +62,35 @@ Examples of the main areas covered by the API:
 - logs
 - analytics
 
-The README should stay honest here: the project is not a full monitoring platform. It is a focused practice project that shows the backend building blocks clearly.
+## Typical flow
 
-## Running locally
+1. authenticate
+2. send log events
+3. query logs by level, date, or source
+4. review summary endpoints for patterns in the data
 
-### 1. Clone the repo
+## Run locally
 
 ```bash
 git clone https://github.com/SlavchoVlakeskiGit/log-analytics-api.git
 cd log-analytics-api
-```
-
-### 2. Create and configure environment variables
-
-Copy `.env.example` and fill in your local values.
-
-### 3. Start the app and database
-
-```bash
 docker-compose up --build
-```
-
-### 4. Run migrations
-
-```bash
 alembic upgrade head
 ```
 
-### 5. Open the docs
-
 Open `/docs` in the browser to test the API.
+
+## Example log payload
+
+```json
+{
+  "timestamp": "2026-03-20T10:14:00Z",
+  "level": "ERROR",
+  "service": "auth-service",
+  "message": "Invalid token",
+  "source_ip": "10.0.0.24"
+}
+```
 
 ## Testing
 
@@ -99,13 +100,11 @@ pytest
 
 ## Notes
 
-A few things I would improve next if I kept extending this project:
+This is not meant to be a full monitoring platform. I kept the scope fairly tight so the main backend pieces stay clear and easy to follow.
 
-- better seed data and test fixtures
-- more complete validation around log sources and event types
-- clearer separation between analytics queries and business rules
-- stronger error handling around malformed ingestion payloads
+## Possible next improvements
 
-## Screenshots
-
-Add 1-2 screenshots only if they help show the API docs or example responses. For this kind of project, request/response examples are usually more useful than too many images.
+- simple alert rules
+- demo seed script for sample logs
+- API key ingestion for service-to-service logging
+- more analytics around repeated failures or spikes
