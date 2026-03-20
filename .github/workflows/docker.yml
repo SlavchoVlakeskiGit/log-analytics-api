@@ -1,0 +1,30 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t log-analytics-api .
+
+      - name: Start containers
+        run: docker compose up -d
+
+      - name: Wait for startup
+        run: sleep 20
+
+      - name: Check API health
+        run: curl --fail http://localhost:8000/health
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down -v
