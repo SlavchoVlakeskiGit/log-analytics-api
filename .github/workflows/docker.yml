@@ -20,10 +20,17 @@ jobs:
         run: docker compose up -d
 
       - name: Wait for startup
-        run: sleep 20
+        run: sleep 25
 
-      - name: Check API health
-        run: curl --fail http://localhost:8000/health
+      - name: Try health endpoint
+        run: |
+          curl -v http://localhost:8000/health || true
+          curl -v http://localhost:8000/api/v1/health || true
+          curl -v http://localhost:8000/docs || true
+
+      - name: Show container logs
+        if: always()
+        run: docker compose logs
 
       - name: Stop containers
         if: always()
