@@ -31,16 +31,6 @@ A small FastAPI service for collecting application logs and querying them with f
 
 ---
 
-## Why I built it
-
-While working on this, I noticed how quickly raw logs become hard to work with unless you add some structure on top. Even simple filtering and grouping already make a big difference.
-
-I also wanted to move away from the typical “users/tasks” projects and build something a bit more operational. It’s still a small project, but the flow feels closer to something you’d actually run in a real service.
-
-The alerting part came later. I kept it intentionally simple, but it helped make the project feel more complete.
-
----
-
 ## Project structure
 
 ```
