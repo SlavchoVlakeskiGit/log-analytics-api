@@ -5,7 +5,6 @@
 
 A small FastAPI service for collecting application logs and querying them with filtering, pagination, and simple analytics.
 
-I built this because I wanted something closer to real backend work than the usual CRUD-style projects. Logs are something every system deals with sooner or later, so it felt like a more practical place to focus.
 
 ---
 
